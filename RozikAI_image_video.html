@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rozik AI</title>
+  <style>
+:root {
+  color-scheme: dark;
+  --bg:#080b18;
+  --panel:#11162a;
+  --muted:#a6aecb;
+  --purple:#a78bfa;
+  --blue:#67e8f9;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; min-height:100vh;
+  font-family:Inter,"Segoe UI",Arial,sans-serif;
+  background:
+    radial-gradient(ellipse at 10% 0%,#512b9b55,transparent 42%),
+    radial-gradient(ellipse at 95% 85%,#087eaa35,transparent 38%),
+    var(--bg);
+  color:#f7f7ff; display:flex; justify-content:center; padding:22px;
+}
+.app {
+  width:min(960px,100%); min-height:calc(100vh - 44px);
+  display:flex; flex-direction:column;
+  background:linear-gradient(145deg,#151a30f2,#0d1224f5);
+  border:1px solid #ffffff17; border-radius:28px; overflow:hidden;
+  box-shadow:0 25px 100px #0008,0 0 50px #8b5cf615;
+  animation:appear .55s ease-out;
+}
+header {
+  display:flex; align-items:center; gap:14px; padding:20px 24px;
+  border-bottom:1px solid #ffffff12;
+  background:#ffffff05; backdrop-filter:blur(18px);
+}
+.logo {
+  width:52px;height:52px;display:grid;place-items:center;border-radius:18px;
+  font-size:28px;background:linear-gradient(135deg,#a855f7,#6366f1 55%,#22d3ee);
+  box-shadow:0 0 28px #8b5cf655;
+}
+h1 { font-size:22px; margin:0 0 4px; letter-spacing:.2px; }
+.subtitle { font-size:13px;color:#a5f3fc; }
+.header-actions { margin-left:auto;display:flex;gap:8px; }
+button {
+  font:inherit;cursor:pointer;border:1px solid #ffffff15;color:#fff;
+  border-radius:14px;padding:10px 14px;
+  background:linear-gradient(135deg,#242b48,#1b2239);
+  transition:transform .18s ease,border-color .18s ease,filter .18s ease;
+}
+button:hover { filter:brightness(1.2);transform:translateY(-1px);border-color:#a78bfa77; }
+button:active { transform:scale(.98); }
+button:focus-visible,input:focus-visible { outline:2px solid var(--blue);outline-offset:3px; }
+.new-chat { border:1px solid #a78bfa55;font-size:13px; }
+main {
+  flex:1;padding:30px clamp(16px,4vw,42px);
+  display:flex;flex-direction:column;gap:18px;
+}
+.welcome { text-align:center;padding:30px 10px 22px; }
+.welcome .big {
+  font-size:48px;margin-bottom:14px;
+  filter:drop-shadow(0 0 20px #a78bfa55);
+  animation:float 3s ease-in-out infinite;
+}
+.welcome h2 {
+  margin:0 0 12px;font-size:clamp(24px,4vw,34px);
+  letter-spacing:-.5px;
+  background:linear-gradient(90deg,#fff,#c4b5fd,#67e8f9);
+  color:transparent;background-clip:text;
+}
+.welcome p { color:var(--muted);max-width:560px;line-height:1.7;margin:0 auto; }
+.chips { display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:24px; }
+.chips button {
+  background:#ffffff08;border:1px solid #ffffff18;color:#e5e7ff;
+  font-size:13px;padding:11px 15px;border-radius:16px;
+}
+#messages { display:flex;flex-direction:column;gap:16px; }
+.msg {
+  max-width:min(80%,700px);padding:14px 17px;border-radius:20px;
+  line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere;
+  animation:messageIn .22s ease-out;
+}
+.msg.ai {
+  align-self:flex-start;
+  background:linear-gradient(145deg,#202944,#171e33);
+  border:1px solid #a5b4fc1c;border-bottom-left-radius:6px;
+  box-shadow:0 8px 25px #0002;
+}
+.msg.user {
+  align-self:flex-end;
+  background:linear-gradient(135deg,#7c3aed,#5b5bd6 65%,#4361c7);
+  border:1px solid #c4b5fd40;border-bottom-right-radius:6px;
+  box-shadow:0 8px 25px #6d28d922;
+}
+.msg .label { font-size:11px;color:#c4b5fd;margin-bottom:5px; }
+.composer-wrap {
+  padding:17px 20px 12px;border-top:1px solid #ffffff12;
+  background:#0b1020bb;backdrop-filter:blur(18px);
+}
+form {
+  display:flex;gap:10px;max-width:840px;margin:auto;
+  padding:6px;background:#ffffff08;border:1px solid #ffffff17;
+  border-radius:20px;transition:border-color .2s,box-shadow .2s;
+}
+form:focus-within { border-color:#a78bfa88;box-shadow:0 0 0 3px #8b5cf61a; }
+input {
+  flex:1;min-width:0;border:0;background:transparent;color:#fff;
+  border-radius:14px;padding:13px 14px;font:inherit;outline:none;
+}
+input::placeholder { color:#858eae; }
+.send {
+  background:linear-gradient(135deg,#9333ea,#6366f1,#0891b2);
+  border:0;padding:0 20px;font-weight:650;border-radius:15px;
+  box-shadow:0 5px 18px #6366f133;
+}
+.send:disabled { opacity:.6;cursor:wait;transform:none; }
+.fine { text-align:center;color:#8791b1;font-size:11px;line-height:1.6;margin:11px 8px 0; }
+footer { text-align:center;color:#7e88a9;font-size:12px;padding:0 16px 17px; }
+@keyframes appear { from {opacity:0;transform:translateY(8px)} to {opacity:1;transform:translateY(0)} }
+@keyframes messageIn { from {opacity:0;transform:translateY(5px)} to {opacity:1;transform:translateY(0)} }
+@keyframes float { 0%,100% {transform:translateY(0)} 50% {transform:translateY(-5px)} }
+@media(max-width:560px) {
+  body {padding:0}
+  .app {min-height:100vh;border-radius:0;border:0}
+  header {padding:15px}
+  .logo {width:44px;height:44px;border-radius:15px}
+  h1 {font-size:19px}
+  .subtitle {font-size:11px}
+  .header-actions .new-chat {padding:9px;font-size:11px}
+  main {padding:20px 14px}
+  .msg {max-width:94%;padding:12px 14px}
+  .composer-wrap {padding:10px}
+  form {gap:5px}
+  input {padding:12px 8px;font-size:14px}
+  .send {padding:0 12px;font-size:13px}
+}
+@media(prefers-reduced-motion:reduce) {
+  *,*::before,*::after {animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+/* Рожик AI: бульбашковий ефект */
+.rozik-bubbles {
+  position:fixed; inset:0; z-index:9999;
+  overflow:hidden; pointer-events:none;
+}
+.rozik-bubble {
+  position:absolute; top:-12vh; left:var(--left);
+  width:var(--size); height:var(--size);
+  border-radius:50%;
+  border:1px solid #b9f5ffb0;
+  background:radial-gradient(circle at 30% 25%,#ffffffa0,#8b5cf633 38%,#38bdf822 72%,#ffffff08);
+  box-shadow:inset -3px -4px 10px #38bdf822,0 0 12px #a78bfa22;
+  animation:rozikFloat var(--duration) ease-in-out var(--delay) infinite alternate;
+}
+.rozik-bubbles.washing .rozik-bubble {
+  animation:rozikWash 1.15s cubic-bezier(.45,0,.8,.4) var(--wash-delay) forwards;
+}
+@keyframes rozikFloat {
+  from { transform:translate3d(-12px,0,0) scale(.8); }
+  to { transform:translate3d(15px,65vh,0) scale(1.08); }
+}
+@keyframes rozikWash {
+  0% { transform:translate3d(0,0,0) scale(1); opacity:.85; }
+  100% { transform:translate3d(30px,120vh,0) scale(.65); opacity:0; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .rozik-bubble { animation-duration:2s; }
+}
+/* Історія чатів Рожика */
+.rozik-chats-backdrop {
+  display:none; position:fixed; inset:0; z-index:10000;
+  background:#02061788; backdrop-filter:blur(3px);
+}
+.rozik-chats-backdrop.open { display:block; }
+.rozik-chats-panel {
+  position:fixed; z-index:10001; top:14px; bottom:14px; left:14px;
+  width:min(300px, calc(100vw - 28px)); padding:16px;
+  display:flex; flex-direction:column; gap:12px;
+  color:#f7f7ff; background:linear-gradient(155deg,#171b32,#0b1020);
+  border:1px solid #a78bfa55; border-radius:20px;
+  box-shadow:0 25px 80px #0009;
+  transform:translateX(calc(-100% - 25px)); transition:transform .25s ease;
+}
+.rozik-chats-panel.open { transform:translateX(0); }
+.rozik-chats-heading { display:flex; align-items:center; justify-content:space-between; font-size:18px; }
+.rozik-chats-heading button { padding:7px 10px; }
+.rozik-create-chat { background:linear-gradient(135deg,#7c3aed,#4f46e5); text-align:left; }
+.rozik-chat-list { display:flex; flex-direction:column; gap:7px; overflow-y:auto; }
+.rozik-chat-item {
+  text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  background:#ffffff08; border:1px solid #ffffff12; color:#e7e9ff;
+}
+.rozik-chat-item.active { background:#8b5cf633; border-color:#a78bfa99; }
+/* Зображення, створені Рожиком */
+.rozik-image-message { width:fit-content; max-width:min(90%,620px); }
+.rozik-image-prompt { margin:5px 0 12px; overflow-wrap:anywhere; }
+.rozik-generated-image {
+  display:block; width:auto; height:auto;
+  max-width:100%; max-height:65vh; object-fit:contain;
+  border-radius:14px; border:1px solid #ffffff20;
+  background:#0b1020; margin:8px 0 12px;
+}
+.rozik-download-image {
+  display:inline-block;
+  background:linear-gradient(135deg,#7c3aed,#0891b2);
+  border:0; padding:10px 14px; border-radius:12px;
+}
+.rozik-download-image:disabled { opacity:.7; cursor:wait; }
+</style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="logo">
+  <img src="rozik-logo.png" alt="Rozik AI" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">
+</div>
+      <div><h1>Rozik AI</h1><div class="subtitle">● Твій помічник росте разом із тобою</div></div>
+      <div class="header-actions"><button class="new-chat" id="newChat" type="button">＋ Новий чат</button></div>
+    </header>
+    <main>
+      <section class="welcome" id="welcome">
+        <div class="big">✨</div>
+        <h2>Привіт! Я Рожик.</h2>
+        <p>Я твій майбутній ШІ-помічник. Поки що це перша версія мого сайту — давай розвивати мене крок за кроком!</p>
+        <div class="chips">
+          <button type="button" data-prompt="Допоможи мені придумати крутий проєкт">💡 Придумати проєкт</button>
+          <button type="button" data-prompt="Поясни щось цікаве про космос">🌌 Дізнатися цікаве</button>
+          <button type="button" data-prompt="Допоможи мені навчитися програмувати">💻 Вивчати код</button>
+        </div>
+      </section>
+      <section id="messages" aria-live="polite"></section>
+    </main>
+    <div class="composer-wrap">
+   <form id="chatForm">
+  <label for="fileInput" class="attach" title="Додати фото або файл">📎</label>
+  <input id="fileInput" type="file" accept="image/*,video/*,.pdf,.txt,.doc,.docx,.csv" multiple hidden>
+  <input id="messageInput" autocomplete="off" placeholder="Напиши повідомлення Рожику..." aria-label="Повідомлення для Рожика">
+  <button class="send" type="submit">Надіслати ➤</button>
+</form>
+<div id="filePreview"></div>
+      <div class="fine">Рожик використовує ШІ через Puter.js. Потрібен інтернет; сервіс може попросити увійти в акаунт. Не вводь платіжні дані й не обирай платний тариф.</div>
+    </div>
+    <footer>Rozik AI · Версія 0.1 · Зроблено з цікавістю 💜</footer>
+  </div>
+<script src="https://js.puter.com/v2/"></script>
+<script>
+  let lastImagePrompt = localStorage.getItem('rozikLastImagePrompt') || '';
+  const form = document.getElementById('chatForm');
+  const input = document.getElementById('messageInput');
+  const fileInput = document.getElementById('fileInput');
+  const filePreview = document.getElementById('filePreview');
+  const messages = document.getElementById('messages');
+  const welcome = document.getElementById('welcome');
+  let attachedText = '';
+  let attachedMedia = [];
+
+  function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error('Не вдалося прочитати файл ' + file.name));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function extractVideoFrames(file) {
+    if (file.size > 100 * 1024 * 1024) throw new Error('Відео завелике (понад 100 МБ). Спробуй коротший ролик.');
+    const video = document.createElement('video');
+    const url = URL.createObjectURL(file);
+    video.preload = 'metadata'; video.muted = true; video.playsInline = true; video.src = url;
+    try {
+      await new Promise((resolve, reject) => {
+        video.onloadedmetadata = resolve;
+        video.onerror = () => reject(new Error('Браузер не зміг відкрити це відео.'));
+      });
+      if (!Number.isFinite(video.duration) || video.duration <= 0) throw new Error('Не вдалося визначити тривалість відео.');
+      const times = [...new Set([0, video.duration * 0.25, video.duration * 0.5, video.duration * 0.75, Math.max(0, video.duration - 0.15)])];
+      const frames = [];
+      for (const time of times) {
+        await new Promise((resolve, reject) => {
+          video.onseeked = resolve;
+          video.onerror = () => reject(new Error('Не вдалося прочитати кадр відео.'));
+          video.currentTime = time;
+        });
+        const canvas = document.createElement('canvas');
+        const scale = Math.min(1, 960 / Math.max(video.videoWidth, video.videoHeight));
+        canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
+        canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        frames.push({ dataUrl: canvas.toDataURL('image/jpeg', 0.78), time: time.toFixed(1) });
+      }
+      return frames;
+    } finally { URL.revokeObjectURL(url); video.removeAttribute('src'); video.load(); }
+  }
+
+  fileInput.addEventListener('change', async () => {
+    filePreview.replaceChildren();
+    attachedText = '';
+    attachedMedia = [];
+    for (const file of fileInput.files) {
+      const item = document.createElement('div');
+      item.textContent = '📎 ' + file.name + ' (' + Math.round(file.size / 1024) + ' КБ)';
+      item.style.cssText = 'padding:6px 10px;margin:4px 0;background:#29213f;color:white;border-radius:8px;font-size:13px;';
+      filePreview.appendChild(item);
+
+      if (file.name.toLowerCase().endsWith('.txt')) {
+        try {
+          const content = await file.text();
+          if (content.trim()) {
+            attachedText += '\n\nВміст файла ' + file.name + ':\n' + content;
+            item.textContent += ' — текст прочитано (' + content.length + ' символів)';
+          } else {
+            item.textContent += ' — файл порожній';
+          }
+        } catch (error) {
+          item.textContent += ' — не вдалося прочитати';
+        }
+      } else if (file.name.toLowerCase().endsWith('.pdf')) {
+        item.textContent += ' — PDF поки не читається автоматично';
+      } else if (file.type.startsWith('image/')) {
+        try {
+          const dataUrl = await readFileAsDataURL(file);
+          attachedMedia.push({ type: 'image', name: file.name, dataUrl });
+          item.textContent += ' — фото готове до аналізу ✓';
+          const preview = document.createElement('img');
+          preview.src = dataUrl; preview.alt = file.name;
+          preview.style.cssText = 'display:block;max-width:180px;max-height:120px;object-fit:contain;margin-top:6px;border-radius:8px;';
+          item.appendChild(preview);
+        } catch (error) { item.textContent += ' — помилка читання фото'; }
+      } else if (file.type.startsWith('video/')) {
+        item.textContent += ' — готую кадри відео…';
+        try {
+          const frames = await extractVideoFrames(file);
+          attachedMedia.push({ type: 'video', name: file.name, frames });
+          item.textContent = '🎬 ' + file.name + ' — підготовлено ' + frames.length + ' кадрів для аналізу ✓';
+        } catch (error) { item.textContent = '🎬 ' + file.name + ' — ' + (error.message || 'не вдалося прочитати відео'); }
+      } else {
+        item.textContent += ' — цей формат поки не читається автоматично';
+      }
+    }
+  });
+
+  const chatsKey = 'rozikChats';
+  let chats = [];
+  try {
+    chats = JSON.parse(localStorage.getItem(chatsKey) || '[]');
+    if (!Array.isArray(chats)) chats = [];
+  } catch (_) { chats = []; }
+
+  chats = chats.filter(c => c && c.id && Array.isArray(c.messages));
+  const oldHistory = JSON.parse(localStorage.getItem('rozikHistory') || '[]');
+  if (!chats.length && Array.isArray(oldHistory) && oldHistory.length) {
+    chats.push({
+      id: String(Date.now()),
+      title: String(oldHistory.find(m => m.who === 'user')?.text || 'Попередній чат').slice(0, 36),
+      messages: oldHistory
+    });
+  }
+  if (!chats.length) {
+    chats.push({ id: String(Date.now()), title: 'Новий чат', messages: [] });
+  }
+
+  let activeChatId = localStorage.getItem('rozikActiveChatId');
+  let activeChat = chats.find(c => c.id === activeChatId) || chats[0];
+  activeChatId = activeChat.id;
+  let chatHistory = activeChat.messages;
+
+  function saveChats() {
+    activeChat.messages = chatHistory;
+    localStorage.setItem(chatsKey, JSON.stringify(chats));
+    localStorage.setItem('rozikActiveChatId', activeChatId);
+    localStorage.setItem('rozikHistory', JSON.stringify(chatHistory));
+  }
+
+  function renderChatList() {
+    const list = document.getElementById('rozikChatList');
+    if (!list) return;
+    list.replaceChildren();
+
+    [...chats].reverse().forEach(chat => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'rozik-chat-item' + (chat.id === activeChatId ? ' active' : '');
+      button.textContent = chat.title || 'Новий чат';
+      button.title = button.textContent;
+      button.addEventListener('click', () => {
+        activeChat = chat;
+        activeChatId = chat.id;
+        chatHistory = activeChat.messages;
+        saveChats();
+        renderCurrentChat();
+        renderChatList();
+        document.getElementById('rozikChatsPanel').classList.remove('open');
+        document.getElementById('rozikChatsBackdrop').classList.remove('open');
+        input.focus();
+      });
+      list.appendChild(button);
+    });
+  }
+
+  function renderCurrentChat() {
+    messages.replaceChildren();
+    welcome.style.display = chatHistory.length ? 'none' : '';
+    chatHistory.forEach(item => addMessage(item.text, item.who, false));
+  }
+
+  function createNewChat() {
+    activeChat = {
+      id: String(Date.now()) + '-' + Math.random().toString(36).slice(2, 7),
+      title: 'Новий чат',
+      messages: []
+    };
+    chats.push(activeChat);
+    activeChatId = activeChat.id;
+    chatHistory = activeChat.messages;
+    saveChats();
+    renderCurrentChat();
+    renderChatList();
+    document.getElementById('rozikChatsPanel').classList.remove('open');
+    document.getElementById('rozikChatsBackdrop').classList.remove('open');
+    input.focus();
+  }
+
+  function initializeChatUI() {
+    const headerActions = document.querySelector('.header-actions');
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'new-chat';
+    toggle.textContent = '☰ Чати';
+    toggle.addEventListener('click', () => {
+      document.getElementById('rozikChatsPanel').classList.toggle('open');
+      document.getElementById('rozikChatsBackdrop').classList.toggle('open');
+      renderChatList();
+    });
+    headerActions.insertBefore(toggle, headerActions.firstChild);
+
+    const backdrop = document.createElement('div');
+    backdrop.id = 'rozikChatsBackdrop';
+    backdrop.className = 'rozik-chats-backdrop';
+    backdrop.addEventListener('click', () => {
+      document.getElementById('rozikChatsPanel').classList.remove('open');
+      backdrop.classList.remove('open');
+    });
+    document.body.appendChild(backdrop);
+
+    const panel = document.createElement('aside');
+    panel.id = 'rozikChatsPanel';
+    panel.className = 'rozik-chats-panel';
+    panel.innerHTML = '<div class="rozik-chats-heading"><strong>Мої чати</strong><button type="button" id="rozikCloseChats" aria-label="Закрити">✕</button></div><button type="button" id="rozikNewChat" class="rozik-create-chat">＋ Новий чат</button><div id="rozikChatList" class="rozik-chat-list"></div>';
+    document.body.appendChild(panel);
+
+    document.getElementById('rozikCloseChats').addEventListener('click', () => {
+      panel.classList.remove('open');
+      backdrop.classList.remove('open');
+    });
+    document.getElementById('rozikNewChat').addEventListener('click', createNewChat);
+    document.getElementById('newChat').addEventListener('click', createNewChat);
+    renderChatList();
+  }
+  const memoryKey = 'rozikMemory';
+  let rozikMemory = [];
+  try {
+    rozikMemory = JSON.parse(localStorage.getItem(memoryKey) || '[]');
+    if (!Array.isArray(rozikMemory)) rozikMemory = [];
+  } catch (_) { rozikMemory = []; }
+
+  function rememberFacts(text) {
+    const match = text.match(/^(?:запам'ятай|запамʼятай|запамятай|пам'ятай|памʼятай)\s*[:,—-]?\s*(.+)$/i);
+    if (!match) return;
+    const fact = match[1].trim();
+    if (fact && !rozikMemory.includes(fact)) {
+      rozikMemory.push(fact);
+      localStorage.setItem(memoryKey, JSON.stringify(rozikMemory));
+    }
+  }
+
+  function addMessage(text, who, save = true) {
+    welcome.style.display = 'none';
+    const bubble = document.createElement('div');
+    bubble.className = 'msg ' + who;
+    const label = document.createElement('div');
+    label.className = 'label';
+    label.textContent = who === 'user' ? 'Ти' : 'Рожик';
+    const content = document.createElement('div');
+    content.textContent = text;
+    bubble.append(label, content);
+    messages.appendChild(bubble);
+if (save) {
+  chatHistory.push({ text, who });
+  if (who === 'user' && activeChat.title === 'Новий чат') {
+    activeChat.title = text.trim().slice(0, 36) || 'Новий чат';
+  }
+  saveChats();
+  renderChatList();
+}
+    bubble.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+  initializeChatUI();
+  renderCurrentChat();
+  function replyFor(text) {
+    const t = text.toLowerCase();
+    if (/(привіт|вітаю|хай|hello)/.test(t)) return 'Приві-і-іт! 😄 Я Рожик, і ми щойно почали мою подорож! Що будемо створювати сьогодні?';
+    if (/(хто ти|як тебе звати|твоє ім.?я)/.test(t)) return 'Я Рожик — майбутній ШІ-помічник Rozik AI! Зараз я працюю в деморежимі, але ми можемо поступово додавати мені справжній інтелект.';
+    if (/(код|програм|сайт)/.test(t)) return 'Клас! 💻 Почнімо з маленького кроку: визначимо, що має вміти наш проєкт, зробимо одну функцію, протестуємо її, а потім додамо наступну. Я допоможу з кодом!';
+    if (/(іде|проєкт|створ)/.test(t)) return 'О, люблю творчі задуми! 🚀 Запиши ідею одним реченням. Потім розкладемо її на маленькі кроки й виберемо найпростіший перший крок.';
+    if (/(космос|планет|зірк)/.test(t)) return 'Цікавий факт 🌌: світло від Сонця долітає до Землі приблизно за 8 хвилин і 20 секунд!';
+    if (/(дякую|спасиб)/.test(t)) return 'Завжди радий допомогти! 💜 Рожик потроху розвивається.';
+    return 'Дякую за повідомлення! 💜 Поки що я демоверсія й не маю підключеної мовної моделі, тому не можу по-справжньому зрозуміти будь-яке запитання. Але це можна виправити на наступному етапі — підключити справжній ШІ без розкриття секретних ключів.';
+  }
+
+  function addGeneratedImage(result, prompt) {
+    let imageUrl = '';
+
+    if (typeof result === 'string') {
+      imageUrl = result;
+    } else if (result && typeof result.src === 'string') {
+      imageUrl = result.src;
+    } else if (result && result.image && typeof result.image.src === 'string') {
+      imageUrl = result.image.src;
+    } else if (result instanceof Blob) {
+      imageUrl = URL.createObjectURL(result);
+    }
+
+    if (!imageUrl) {
+      throw new Error('Сервіс не повернув посилання на картинку. Спробуй ще раз.');
+    }
+
+    const bubble = document.createElement('div');
+    bubble.className = 'msg ai rozik-image-message';
+
+    const label = document.createElement('div');
+    label.className = 'label';
+    label.textContent = 'Рожик · Зображення';
+
+    const description = document.createElement('div');
+    description.className = 'rozik-image-prompt';
+    description.textContent = prompt;
+
+    const img = document.createElement('img');
+    img.className = 'rozik-generated-image';
+    img.alt = 'Зображення, створене Рожиком за описом: ' + prompt;
+    img.src = imageUrl;
+
+    const download = document.createElement('button');
+    download.type = 'button';
+    download.className = 'rozik-download-image';
+    download.textContent = '⬇ Зберегти зображення';
+
+    download.addEventListener('click', async () => {
+      download.disabled = true;
+      download.textContent = 'Готую файл…';
+      try {
+        const response = await fetch(imageUrl);
+        if (!response.ok) throw new Error('Не вдалося завантажити файл');
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = objectUrl;
+        link.download = 'rozik-image.png';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 3000);
+        download.textContent = '✓ Завантаження розпочато';
+      } catch (_) {
+        const link = document.createElement('a');
+        link.href = imageUrl;
+        link.download = 'rozik-image';
+        link.target = '_blank';
+        link.rel = 'noopener';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        download.textContent = 'Відкрито зображення';
+      } finally {
+        download.disabled = false;
+      }
+    });
+
+    bubble.append(label, description, img, download);
+    messages.appendChild(bubble);
+    bubble.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  function extractAIText(result) {
+    let answer = typeof result === 'string' ? result : result?.message?.content;
+    if (Array.isArray(answer)) answer = answer.map(part => typeof part === 'string' ? part : (part?.text || '')).join('');
+    if (!answer && result?.text) answer = result.text;
+    return answer ? String(answer) : 'ШІ повернув відповідь у незнайомому форматі.';
+  }
+
+  async function sendMessage(text) {
+    const clean = text.trim();
+    if (!clean && !attachedText && !attachedMedia.length) return;
+    const mediaToAnalyze = attachedMedia.slice();
+    attachedMedia = [];
+    rememberFacts(clean);
+    const userMessage = clean || 'Прочитай прикріплений файл і поясни його.';
+addMessage(userMessage, 'user');
+    input.value = '';
+    input.disabled = true;
+    const sendButton = form.querySelector('.send');
+    sendButton.disabled = true;
+    sendButton.textContent = 'Думаю…';
+
+    // Temporary indicator is not saved into chat history.
+    addMessage('Думаю… 🤔', 'ai', false);
+    const loadingBubble = messages.lastElementChild;
+
+    startBubbleEffect();
+    try {
+      if (!window.puter || !puter.ai || typeof puter.ai.chat !== 'function') {
+        throw new Error('Не вдалося завантажити Puter.js. Перевір інтернет і відкрий файл у браузері ще раз.');
+      }
+let imageMatch = clean.match(/^(?:(?:рожику[,! ]*)?(?:створи|створити|згенеруй|згенерувати|намалюй|намалювати|зроби|покажи)\s+(?:мені\s+)?(?:(?:ще\s+)?(?:одну\s+)?(?:зображення|картинку|малюнок|ілюстрацію)\s*)?[:—-]?\s*|(?:і\s+)?(?:щоб|зміни|додай|прибери|нехай|зроби\s+його|тепер\s+хай)\s+)(.+)$/i);
+      if (!imageMatch && lastImagePrompt && /(?:такий\s+самий\s+варіант|але|зроби\s+ще|ще\s+молодш|молодш|старш|зміни|додай|прибери|по\s+пояс|на\s+повний\s+зріст|дивився|дивиться|палець\s+вгору|baby|younger|older|make\s+him|change\s+him|^(?:і\s+)?(?:щоб|нехай|тепер\s+хай)\b)/i.test(clean)) imageMatch = [clean, clean];
+      if (imageMatch) {
+        if (typeof puter.ai.txt2img !== 'function') {
+          throw new Error('У поточній версії Puter.js немає доступної функції генерації зображень (puter.ai.txt2img). Чат працює, але потрібен сумісний генератор картинок.');
+        }
+        const isFollowUp = /(?:^(?:і\s+)?(?:щоб|зміни|додай|прибери|нехай|зроби\s+його|тепер\s+хай)\b|такий\s+самий\s+варіант|але|зроби\s+ще|молодш|старш|по\s+пояс|на\s+повний\s+зріст|дивився|дивиться|палець\s+вгору|baby|younger|older|make\s+him|change\s+him)/i.test(clean); const imagePrompt = isFollowUp && lastImagePrompt ? lastImagePrompt + ". Зміни: " + clean : (imageMatch[1].trim() || clean);
+        const generated = await puter.ai.txt2img(imagePrompt);
+    lastImagePrompt = imagePrompt;
+    localStorage.setItem('rozikLastImagePrompt', lastImagePrompt);
+        loadingBubble.remove();
+        await stopBubbleEffect();
+        addGeneratedImage(generated, imagePrompt);
+        return;
+      }
+      if (mediaToAnalyze.length) {
+        const request = clean || 'Опиши прикріплений файл якомога зрозуміліше.';
+        const analyses = [];
+        for (const media of mediaToAnalyze) {
+          if (media.type === 'image') {
+            const visionResult = await puter.ai.chat('Ти Рожик AI. Відповідай українською. Проаналізуй зображення. Запит користувача: ' + request, media.dataUrl);
+            analyses.push('Фото «' + media.name + '":\n' + extractAIText(visionResult));
+          } else if (media.type === 'video') {
+            const frameNotes = [];
+            for (const frame of media.frames) {
+              const frameResult = await puter.ai.chat('Ти Рожик AI. Відповідай українською. Це кадр на позначці ' + frame.time + ' секунди з відео «' + media.name + '». Опиши, що видно в кадрі, стисло й конкретно.', frame.dataUrl);
+              frameNotes.push('Кадр ' + frame.time + ' с: ' + extractAIText(frameResult));
+            }
+            analyses.push('Відео «' + media.name + '":\n' + frameNotes.join('\n') + '\nНа основі цих кадрів дай відповідь на запит: ' + request);
+          }
+        }
+        const finalResult = await puter.ai.chat([
+          { role: 'system', content: 'Ти Рожик AI. Відповідай українською. Аналізуй лише надані спостереження, не вигадуй деталей, яких не видно.' },
+          { role: 'user', content: 'Запит користувача: ' + request + '\n\nРезультати аналізу вкладень:\n' + analyses.join('\n\n') + (attachedText ? '\n\nТекст із прикріпленого документа:\n' + attachedText : '') }
+        ]);
+        loadingBubble.remove();
+        await stopBubbleEffect();
+        addMessage(extractAIText(finalResult), 'ai');
+        filePreview.replaceChildren();
+        return;
+      }
+      const conversation = [
+        {
+          role: 'system',
+          content: 'Ти Рожик AI. Відповідай українською. Використовуй збережені факти, коли вони доречні. Не вигадуй фактів. Пам’ять користувача: ' + (rozikMemory.length ? rozikMemory.join('; ') : 'поки порожня')
+        },
+          ...chatHistory.slice(-20).map((item, index, recentMessages) => ({
+          role: item.who === 'user' ? 'user' : 'assistant',
+          content: item.text + (
+            attachedText && item.who === 'user' && index === recentMessages.length - 1
+              ? '\n\n[Текст прикріпленого файла — прочитай його та відповідай на запит користувача]:\n' + attachedText
+              : ''
+          )
+        }))
+      ];
+      const result = await puter.ai.chat(conversation);
+      let answer = extractAIText(result);
+      if (answer === 'ШІ повернув відповідь у незнайомому форматі.') answer = 'ШІ відповів у незнайомому форматі. Спробуй поставити запитання ще раз.';
+      loadingBubble.remove();
+      await stopBubbleEffect();
+      addMessage(String(answer), 'ai');
+    } catch (error) {
+      loadingBubble.remove();
+      await stopBubbleEffect();
+      let message = '';
+      try {
+        if (typeof error === 'string') message = error;
+        else if (error && typeof error.message === 'string' && error.message.trim()) message = error.message;
+        else message = JSON.stringify(error);
+      } catch (_) { message = String(error); }
+      if (!message || message === '{}' || message === 'null') message = 'Сервіс не надав пояснення. Перевір інтернет і чи не з’явилося вікно входу в Puter.';
+      addMessage('Не вдалося отримати відповідь від ШІ. Деталі: ' + message + ' Якщо з’явиться оплата або прохання ввести банківську картку — нічого не вводь. Надішли мені цей текст помилки.', 'ai');
+    } finally {
+      input.disabled = false;
+      sendButton.disabled = false;
+      sendButton.textContent = 'Надіслати ➤';
+      input.focus();
+    }
+  }
+
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+  e.stopPropagation();
+
+  const text = input.value.trim();
+  if (!text && !attachedText && !attachedMedia.length) return;
+
+  try {
+    await sendMessage(text);
+  } catch (error) {
+    console.error('Помилка надсилання:', error);
+  }
+});  document.getElementById('newChat').addEventListener('click', () => {
+    messages.replaceChildren();
+    chatHistory.length = 0;
+    localStorage.removeItem('rozikHistory');
+    welcome.style.display = '';
+    input.focus();
+  });
+  document.querySelectorAll('[data-prompt]').forEach(btn => btn.addEventListener('click', () => sendMessage(btn.dataset.prompt)));
+
+function startBubbleEffect() {
+  stopBubbleEffectNow();
+  const layer = document.createElement('div');
+  layer.className = 'rozik-bubbles';
+  layer.id = 'rozikBubbleLayer';
+  for (let i = 0; i < 85; i++) {
+    const bubble = document.createElement('span');
+    bubble.className = 'rozik-bubble';
+    bubble.style.setProperty('--left', Math.random() * 100 + '%');
+    bubble.style.setProperty('--size', (12 + Math.random() * 48) + 'px');
+    bubble.style.setProperty('--duration', (1.8 + Math.random() * 3.5) + 's');
+    bubble.style.setProperty('--delay', (-Math.random() * 4) + 's');
+    bubble.style.setProperty('--wash-delay', (Math.random() * .35) + 's');
+    layer.appendChild(bubble);
+  }
+  document.body.appendChild(layer);
+}
+function stopBubbleEffectNow() {
+  document.getElementById('rozikBubbleLayer')?.remove();
+}
+function stopBubbleEffect() {
+  const layer = document.getElementById('rozikBubbleLayer');
+  if (!layer) return Promise.resolve();
+  layer.classList.add('washing');
+  return new Promise(resolve => {
+    setTimeout(() => {
+      layer.remove();
+      resolve();
+    }, 1550);
+  });
+}
+</script>
+</body>
+</html>
