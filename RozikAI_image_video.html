@@ -245,6 +245,7 @@ footer { text-align:center;color:#7e88a9;font-size:12px;padding:0 16px 17px; }
   </div>
 <script src="https://js.puter.com/v2/"></script>
 <script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   let lastImagePrompt = localStorage.getItem('rozikLastImagePrompt') || '';
   const form = document.getElementById('chatForm');
   const input = document.getElementById('messageInput');
@@ -317,7 +318,43 @@ footer { text-align:center;color:#7e88a9;font-size:12px;padding:0 16px 17px; }
           item.textContent += ' — не вдалося прочитати';
         }
       } else if (file.name.toLowerCase().endsWith('.pdf')) {
-        item.textContent += ' — PDF поки не читається автоматично';
+  item.textContent += ' — читаю PDF…';
+  try {
+    const pdf = await pdfjsLib.getDocument({
+      data: await file.arrayBuffer()
+    }).promise;
+
+    let pdfText = '';
+    const maxPages = Math.min(pdf.numPages, 40);
+
+    for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      const content = await page.getTextContent();
+      const pageText = content.items
+        .map(part => part.str || '')
+        .join(' ');
+
+      pdfText += '\n[Сторінка ' + pageNum + ']\n' + pageText;
+
+      if (pdfText.length >= 30000) {
+        pdfText = pdfText.slice(0, 30000);
+        break;
+      }
+    }
+
+    if (pdfText.trim()) {
+      attachedText += '\n\nВміст PDF ' + file.name + ':\n' + pdfText;
+      item.textContent += ' — текст прочитано ✓';
+      if (pdf.numPages > maxPages) {
+        item.textContent += ' (перші ' + maxPages + ' сторінок)';
+      }
+    } else {
+      item.textContent += ' — текст не знайдено; можливо, це скан';
+    }
+  } catch (error) {
+    console.error('Помилка читання PDF:', error);
+    item.textContent += ' — помилка читання PDF';
+  }
       } else if (file.type.startsWith('image/')) {
         try {
           const dataUrl = await readFileAsDataURL(file);
