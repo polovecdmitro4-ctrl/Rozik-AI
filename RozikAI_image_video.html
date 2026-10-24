@@ -650,13 +650,17 @@ addMessage(userMessage, 'user');
       if (!window.puter || !puter.ai || typeof puter.ai.chat !== 'function') {
         throw new Error('Не вдалося завантажити Puter.js. Перевір інтернет і відкрий файл у браузері ще раз.');
       }
-let imageMatch = clean.match(/^(?:(?:(?:а\s+)?(?:тепер|потім)\s+)?(?:рожику[,! ]*)?(?:створи|створити|згенеруй|згенерувати|намалюй|намалювати|зроби|покажи)\s+(?:мені\s+)?(?:(?:ще\s+)?(?:одну\s+)?(?:зображення|картинку|малюнок|ілюстрацію)\s*)?[:—-]?\s*|(?:а\s+)?(?:тепер|потім|ще)\s+|(?:і\s+)?(?:щоб|зміни|додай|прибери|нехай|зроби\s+його|тепер\s+хай)\s+)(.+)$/i);
-      if (!imageMatch && lastImagePrompt && /(?:такий\s+самий\s+варіант|але|зроби\s+ще|ще\s+молодш|молодш|старш|зміни|додай|прибери|по\s+пояс|на\s+повний\s+зріст|дивився|дивиться|палець\s+вгору|baby|younger|older|make\s+him|change\s+him|^(?:і\s+)?(?:щоб|нехай|тепер\s+хай)\b)/i.test(clean)) imageMatch = [clean, clean];
+let imageMatch = clean.match(/^(?:(?:(?:а\s+)?(?:тепер|потім)\s+)?(?:рожику[,! ]*)?(?:створи|створити|згенеруй|згенерувати|намалюй|намалювати|зроби|покажи)\s+(?:мені\s+)?(?:(?:ще\s+)?(?:одну\s+)?(?:зображення|картинку|малюнок|ілюстрацію)\s*)?[:—-]?\s*|(?:а\s+)?(?:тепер|потім|ще)\s+|(?:інше|інший|інша|іншу|іншого|ще\s+одну|ще\s+один|нову\s+картинку|нова\s+картинка)\s*|(?:і\s+)?(?:щоб|зміни|додай|прибери|нехай|зроби\s+його|тепер\s+хай)\s+)(.+)$/i);
       if (imageMatch) {
         if (typeof puter.ai.txt2img !== 'function') {
           throw new Error('У поточній версії Puter.js немає доступної функції генерації зображень (puter.ai.txt2img). Чат працює, але потрібен сумісний генератор картинок.');
         }
-        const isFollowUp = /(?:^(?:і\s+)?(?:щоб|зміни|додай|прибери|нехай|зроби\s+його|тепер\s+хай)\b|такий\s+самий\s+варіант|але|зроби\s+ще|молодш|старш|по\s+пояс|на\s+повний\s+зріст|дивився|дивиться|палець\s+вгору|baby|younger|older|make\s+him|change\s+him)/i.test(clean); const imagePrompt = isFollowUp && lastImagePrompt ? lastImagePrompt + ". Зміни: " + clean : (imageMatch[1].trim() || clean);
+       const isFollowUp = /^(?:інше|інший|інша|іншу|іншого|ще\s+одну|ще\s+один|нову\s+картинку|нова\s+картинка)\s*$/i.test(clean) || /(?:^(?:і\s+)?(?:щоб|зміни|додай|прибери|нехай|зроби\s+його|тепер\s+хай)\b|такий\s+самий\s+варіант|але|зроби\s+ще|молодш|старш|по\s+пояс|на\s+повний\s+зріст|дивився|дивиться|палець\s+вгору|baby|younger|older|make\s+him|change\s+him)/i.test(clean);
+                const imagePrompt = /^(?:інше|інший|інша|іншу|іншого|ще\s+одну|ще\s+один|нову\s+картинку|нова\s+картинка)\s*$/i.test(clean) && lastImagePrompt
+          ? lastImagePrompt + ". Створи інший, помітно відмінний варіант зображення."
+          : isFollowUp && lastImagePrompt
+            ? lastImagePrompt + ". Зміни: " + clean
+            : (imageMatch[1].trim() || clean);
         const generated = await puter.ai.txt2img(imagePrompt);
     lastImagePrompt = imagePrompt;
     localStorage.setItem('rozikLastImagePrompt', lastImagePrompt);
